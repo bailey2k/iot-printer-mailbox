@@ -1,0 +1,28 @@
+{
+  "name": "iot-printer-mailbox",
+  "version": "1.0.0",
+  "description": "IOT thermal printer mailbox project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bailey2k/iot-printer-mailbox.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bailey2k/iot-printer-mailbox/issues"
+  },
+  "homepage": "https://github.com/bailey2k/iot-printer-mailbox#readme",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mongodb": "^6.20.0",
+    "node-fetch": "^3.3.2"
+  }
+}

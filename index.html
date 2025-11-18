@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Mailbox</title>
+        <style>
+            @font-face {
+                font-family: 'pikmin';
+                src: url('Pikmin font.ttf') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }
+            body {
+                font-family: 'pikmin', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #6a0dad, #1e90ff);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+
+            .container {
+                background: white;
+                padding: 30px 40px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                width: 350px;
+                text-align: center;
+            }
+
+            h2 {
+                font-family: 'pikmin', sans-serif;
+                color: #333;
+                margin-bottom: 20px;
+            }
+
+            input, textarea {
+                font-family: 'pikmin', sans-serif;
+                width: 100%;
+                padding: 12px;
+                margin: 8px 0;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                font-size: 14px;
+                box-sizing: border-box;
+                transition: 0.3s;
+            }
+
+            input:focus, textarea:focus {
+                outline: none;
+                border-color: #4a90e2;
+                box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+            }
+
+            button {
+                font-family: 'pikmin', sans-serif;
+                background-color: #4a90e2;
+                color: white;
+                padding: 12px 20px;
+                margin-top: 12px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                width: 100%;
+                transition: 0.3s;
+            }
+
+            button:hover {
+                background-color: #357ABD;
+            }
+
+            .footer {
+                margin-top: 15px;
+                font-size: 12px;
+                color: #777;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Send a Message</h2>
+            <input id="sender" placeholder="your name">
+            <input id="receiver" placeholder="recipient's name">
+            <textarea id="msg" placeholder="type your message here"></textarea>
+            <button onclick="sendMessage()">Send Message</button>
+            <div class="footer">Powered by IoT Thermal Mailbox</div>
+        </div>
+
+        <script src="config.js"></script>
+
+        <script>
+        async function sendMessage() {
+            const sender = document.getElementById('sender').value;
+            const receiver = document.getElementById('receiver').value;
+            const text = document.getElementById('msg').value;
+
+            if (!sender || !receiver || !text) {
+                alert("please fill all fields!");
+                return;
+            }
+
+            try {
+                await fetch(`${SERVER_URL}/send`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ sender, receiver, text })
+                });
+                alert("message sent!");
+                document.getElementById('msg').value = '';
+            } catch (err) {
+                alert("error sending message: " + err);
+            }
+        }
+        </script>
+    </body>
+</html>
