@@ -88,8 +88,6 @@
             <div class="footer">Powered by IoT Thermal Mailbox</div>
         </div>
 
-        <script src="config.js"></script>
-
         <script>
         async function sendMessage() {
             const sender = document.getElementById('sender').value;
@@ -102,7 +100,7 @@
             }
 
             try {
-                await fetch(`${SERVER_URL}/send`, {
+                await fetch(`/send`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ sender, receiver, text })
