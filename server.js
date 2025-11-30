@@ -3,6 +3,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PW
+  }
+});
 
 const { MongoClient, ObjectId } = require('mongodb');
 const uri = process.env.MONGODB_URI;
@@ -35,6 +44,24 @@ app.post('/send', async(req, res) => {
 
     const message = {sender, receiver, text, timestamp: new Date(), delivered: false};
     await messagesCollection.insertOne(message);
+
+    if (process.env.EMAIL_RECEIVER && receiver.toLowerCase() === process.env.EMAIL_RECEIVER.toLowerCase()) {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: process.env.EMAIL_TO,
+        subject: `new message from ${sender}!!`,
+        text: text
+      };
+
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.error('error sending email:', err);
+        }
+        else{
+          console.log('email sent:', info.response);
+        }
+      });
+    }
 
     console.log("New message received:", message);
     res.send({ status: "ok" });
