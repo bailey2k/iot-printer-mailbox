@@ -60,7 +60,7 @@ GMAIL_REFRESH_TOKEN=refresh_token
 ### Make config.py file (on pi)
 ```bash
 SERVER_URL = "http://<your-server-url>" # 
-USERNAME = "username" # change to whatever desired
+USERNAME = "username" # change to whatever name the person on the pi chooses
 POLL_INTERVAL = 10  # seconds between polls, i like to set this to be daily to act like a real mailbox, being delivered daily
 ```
 

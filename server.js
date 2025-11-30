@@ -89,7 +89,7 @@ app.post('/send', async (req, res) => {
 
 app.get('/messages/:user', async (req, res) => {
     const user = req.params.user;
-    const userMessages = await messagesCollection.find({ receiver: user }).toArray();
+    const userMessages = await messagesCollection.find({ receiver: user, delivered: false }).toArray();
     res.send(userMessages);
 });
 
