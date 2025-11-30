@@ -5,7 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-const nodemailer = require('nodemailer');
+// nodemailer removed: we'll use the Gmail REST API via googleapis + OAuth2
 
 const { MongoClient, ObjectId } = require('mongodb');
 const uri = process.env.MONGODB_URI;
@@ -27,30 +27,18 @@ async function connectMongo() {
 
 connectMongo().catch(console.error);
 
-let transporter = null;
+let gmailClient = null;
+let oAuth2Client = null;
 
 if (process.env.GMAIL_USER && process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN) {
-  const oAuth2Client = new google.auth.OAuth2(
-    process.env.GMAIL_CLIENT_ID,
-    process.env.GMAIL_CLIENT_SECRET,
-    "https://developers.google.com/oauthplayground" 
-  );
-  oAuth2Client.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
-
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      type: 'OAuth2',
-      user: process.env.GMAIL_USER,
-      clientId: process.env.GMAIL_CLIENT_ID,
-      clientSecret: process.env.GMAIL_CLIENT_SECRET,
-      refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-      accessToken: async () => {
-        const token = await oAuth2Client.getAccessToken();
-        return token.token;
-      }
-    }
-  });
+    oAuth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        'https://developers.google.com/oauthplayground'
+    );
+    oAuth2Client.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
+    gmailClient = google.gmail({ version: 'v1', auth: oAuth2Client });
+    console.log('Gmail API client configured for', process.env.GMAIL_USER);
 }
 
 app.get('/', (req, res) => {
@@ -66,24 +54,40 @@ app.post('/send', async (req, res) => {
 
     console.log("New message received:", message);
 
-    // ✅ Optional: email to you if receiver matches EMAIL_RECEIVER
-    if (transporter && process.env.EMAIL_RECEIVER &&
-        receiver.toLowerCase() === process.env.EMAIL_RECEIVER.toLowerCase()) {
+        // ✅ Optional: email to you if receiver matches EMAIL_RECEIVER
+        let emailStatus = 'disabled';
+        if (gmailClient && process.env.EMAIL_RECEIVER &&
+                receiver.toLowerCase() === process.env.EMAIL_RECEIVER.toLowerCase()) {
 
-        const mailOptions = {
-            from: process.env.GMAIL_USER,
-            to: process.env.EMAIL_TO,
-            subject: `New message from ${sender}!!`,
-            text: text
-        };
+                // Build a simple RFC2822 message and base64url-encode it for the Gmail API
+                const rawLines = [];
+                rawLines.push(`From: ${process.env.GMAIL_USER}`);
+                rawLines.push(`To: ${process.env.EMAIL_TO}`);
+                rawLines.push(`Subject: New message from ${sender}!!`);
+                rawLines.push('Content-Type: text/plain; charset="UTF-8"');
+                rawLines.push('');
+                rawLines.push(text);
 
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) console.error('Error sending email:', err);
-            else console.log('Email sent:', info.response);
-        });
-    }
+                const raw = Buffer.from(rawLines.join('\n'))
+                    .toString('base64')
+                    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-    res.send({ status: "ok" });
+                try {
+                    await gmailClient.users.messages.send({
+                        userId: 'me',
+                        requestBody: { raw }
+                    });
+                    console.log('Email sent via Gmail API');
+                    emailStatus = 'sent';
+                } catch (err) {
+                    console.error('Error sending email via Gmail API:', err);
+                    emailStatus = 'error';
+                }
+        } else {
+                if (!gmailClient) console.warn('Gmail API client not configured (set GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN).');
+        }
+
+        res.send({ status: 'ok', email: emailStatus });
 });
 
 app.get('/messages/:user', async (req, res) => {
