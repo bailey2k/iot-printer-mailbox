@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const { google } = require('googleapis')
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -26,14 +27,28 @@ async function connectMongo() {
 
 connectMongo().catch(console.error);
 
-// ✅ Set up optional email transport only if creds exist
 let transporter = null;
-if (process.env.GMAIL_USER && process.env.GMAIL_PW) {
+
+if (process.env.GMAIL_USER && process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN) {
+  const oAuth2Client = new google.auth.OAuth2(
+    process.env.GMAIL_CLIENT_ID,
+    process.env.GMAIL_CLIENT_SECRET,
+    "https://developers.google.com/oauthplayground" 
+  );
+  oAuth2Client.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
+
   transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
+      type: 'OAuth2',
       user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PW
+      clientId: process.env.GMAIL_CLIENT_ID,
+      clientSecret: process.env.GMAIL_CLIENT_SECRET,
+      refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+      accessToken: async () => {
+        const token = await oAuth2Client.getAccessToken();
+        return token.token;
+      }
     }
   });
 }
