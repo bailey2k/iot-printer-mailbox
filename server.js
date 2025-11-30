@@ -5,7 +5,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-// nodemailer removed: we'll use the Gmail REST API via googleapis + OAuth2
 
 const { MongoClient, ObjectId } = require('mongodb');
 const uri = process.env.MONGODB_URI;
@@ -54,12 +53,10 @@ app.post('/send', async (req, res) => {
 
     console.log("New message received:", message);
 
-        // ✅ Optional: email to you if receiver matches EMAIL_RECEIVER
         let emailStatus = 'disabled';
         if (gmailClient && process.env.EMAIL_RECEIVER &&
                 receiver.toLowerCase() === process.env.EMAIL_RECEIVER.toLowerCase()) {
 
-                // Build a simple RFC2822 message and base64url-encode it for the Gmail API
                 const rawLines = [];
                 rawLines.push(`From: ${process.env.GMAIL_USER}`);
                 rawLines.push(`To: ${process.env.EMAIL_TO}`);

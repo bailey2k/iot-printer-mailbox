@@ -28,6 +28,8 @@ cd iot-printer-mailbox
 docker run -d --name my-mongo -p 27017:27017 mongo
 ```
 
+### Note: you can use MongoDB Atlas if you so choose.
+
 ### Make a config.js file
 ```bash
 echo "const SERVER_URL = 'http://localhost:3000';" > config.js
@@ -40,42 +42,26 @@ npm install
 node server.js
 ```
 
-### Gmail email notifications (optional)
-
-This project can optionally send an email notification to you when a message is delivered to a specific mailbox receiver. To enable email sending using Gmail:
-
-- Use an App Password (recommended) if your Google account uses 2-step verification.
-- Add the following variables to a `.env` file in the project root (see `.env.example`):
-
-```
-GMAIL_USER=your.email@gmail.com
-GMAIL_PW=your_app_password_here    # App Password
-EMAIL_RECEIVER=mailbox_username   # receiver name to watch for
-EMAIL_TO=your.forwarding.address@example.com
-```
-
-How to create an App Password:
-
-1. Go to https://myaccount.google.com/
-2. Select `Security` → under "Signing in to Google" ensure `2-Step Verification` is ON.
-3. Click `App passwords`, choose `Other (Custom name)` and name it e.g. `iot-printer-mailbox`.
-4. Copy the generated 16-character password and paste it into `GMAIL_PW` in your `.env`.
-
-On macOS (zsh) you can create the `.env` file quickly:
-
+### Make a .env file (if using MongoDB Atlas and remote deployment)
 ```bash
-cat .env.example > .env
-open .env
-# then edit the file and paste your values
-```
+MONGODB_URI=mongodb+srv://baileyjones740_db_user:RI7p1dUR4SqSkwA6@mailbox.t05phln.mongodb.net/?appName=mailbox
+PORT=10000
 
-If you prefer not to use an App Password, older Google accounts allowed "less secure app access" but that is deprecated and not recommended.
+EMAIL_RECEIVER=name-of-person-getting-emailed
+EMAIL_TO=xxx@email.com
+GMAIL_USER=xxx@email.com
+
+# i chose to use gmail oauth2 over https as Render was blocking SMTP ports, replace these with your respective values
+GMAIL_CLIENT_ID=client_id
+GMAIL_CLIENT_SECRET=client_secret
+GMAIL_REFRESH_TOKEN=refresh_token
+```
 
 ### Make config.py file (on pi)
 ```bash
-SERVER_URL = "http://<your-server-ip>:3000" # 
+SERVER_URL = "http://<your-server-url>" # 
 USERNAME = "username" # change to whatever desired
-POLL_INTERVAL = 10  # seconds between polls
+POLL_INTERVAL = 10  # seconds between polls, i like to set this to be daily to act like a real mailbox, being delivered daily
 ```
 
 ### Setup mailbox client (on Pi)
