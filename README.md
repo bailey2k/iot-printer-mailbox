@@ -44,7 +44,7 @@ node server.js
 
 ### Make a .env file (if using MongoDB Atlas and remote deployment)
 ```bash
-MONGODB_URI=mongodb+srv://baileyjones740_db_user:RI7p1dUR4SqSkwA6@mailbox.t05phln.mongodb.net/?appName=mailbox
+MONGODB_URI=mongodburi
 PORT=10000
 
 EMAIL_RECEIVER=name-of-person-getting-emailed
