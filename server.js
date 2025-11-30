@@ -1,9 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 
 const { MongoClient, ObjectId } = require('mongodb');
-const uri = 'mongodb://127.0.0.1:27017';
+const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 
 const app = express();
@@ -22,6 +24,10 @@ async function connectMongo() {
 }
 
 connectMongo().catch(console.error);
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.post('/send', async(req, res) => {
     const { sender, receiver, text } = req.body;
@@ -73,5 +79,6 @@ app.get("/delivered/:username", async (req, res) => {
 });
 
 
-app.listen(3000, '0.0.0.0', () => console.log("server running on port 3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => console.log("server running on port", PORT));
 
