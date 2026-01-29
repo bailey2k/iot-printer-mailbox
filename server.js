@@ -55,7 +55,7 @@ app.post('/send', async (req, res) => {
         text, 
         timestamp: new Date(), 
         delivered: false,
-        queued: true   // <--- IMPORTANT FOR OUTGOING SEND
+        queued: true   // IMPORTANT FOR OUTGOING SEND
     };
     await messagesCollection.insertOne(message);
 
