@@ -45,6 +45,7 @@
             border-radius: 6px;
             width: 100%;
             cursor: pointer;
+            margin-top: 12px;
         }
         button:hover {
             background: #357ABD;
@@ -57,7 +58,8 @@
         <input id="sender" placeholder="your name">
         <input id="receiver" placeholder="recipient's name">
         <textarea id="msg" placeholder="your message" rows="4"></textarea>
-        <button onclick="sendMessage()">Send</button>
+        <button onclick="sendMessage()">leave your letter in the mailbox</button>
+        <button onclick="sendMessageWithNoFlag()">hand your letter off to mailman</button>
     </div>
 
     <script>
@@ -78,8 +80,41 @@
                     body: JSON.stringify({ sender, receiver, text })
                 });
                 if (res.ok) {
-                    alert('you just put your message in the mailbox! put your flag up if you have one and wait for the mailman to deliver it....');
+                    alert('you just put your letter in the mailbox! \n put your flag up if you have one and wait for the mailman to arrive and deliver it....');
                     document.getElementById('msg').value = '';
+                } else {
+                    alert('Something went wrong.');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+    </script>
+    <script>
+        async function sendMessageWithNoFlag() {
+            const sender = document.getElementById('sender').value.trim();
+            const receiver = document.getElementById('receiver').value.trim();
+            const text = document.getElementById('msg').value.trim();
+
+            if (!sender || !receiver || !text) {
+                alert('please fill in all fields...');
+                return;
+            }
+
+            try {
+                const res = await fetch('/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sender, receiver, text })
+                });
+                if (!res.ok) {
+                    alert('Something went wrong.');
+                    return;
+                }
+                document.getElementById('msg').value = '';
+                const res2 = await fetch(`/send_outgoing/${sender}`, { method: 'POST' });
+                if (res2.ok) {
+                    alert('you just handed your mail to the mailman...\n off to be delivered now!');
                 } else {
                     alert('Something went wrong.');
                 }
