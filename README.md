@@ -4,95 +4,78 @@ An IOT "mailbox" I made as a present for my girlfriend.
 
 ---
 
-## Features:
-- send "mail" via simple web portal
-- messages printed on thermal printer connected to Raspberry Pi
-- simple Node.js/Express backend
+## Features
 
-## Requirements (2x of each, if two-way):
+- Send "mail" via simple web portal
+- Messages printed on thermal printer connected to Raspberry Pi
+- Node.js/Express backend with MongoDB
+
+## Requirements (2x of each, if two-way)
+
 - Raspberry Pi & an appropriate power supply (I used the Zero 2 W and its official power supply)
 - USB thermal printer (TTL thermal printers work, but more finicky setup)
 - A simple limit switch (cheaply found on Amazon, any of these should work)
 - A 5V DC cable and a barrel jack adapter for the printer (adapter can be avoided by soldering directly to the 5V cable)
 - A female to male MicroUSB to USB-A adapter (printer does not like if you use MicroUSB to MiniUSB directly)
 
-## Installation:
+## Installation
 
-## NOTE: You will need to setup the Pi/printer, Adafruit has a guide [here](https://learn.adafruit.com/networked-thermal-printer-using-cups-and-raspberry-pi/overview).
+**NOTE:** You will need to setup the Pi/printer. Adafruit has a guide [here](https://learn.adafruit.com/networked-thermal-printer-using-cups-and-raspberry-pi/overview).
 
 ### Clone repo
+
 ```bash
 git clone https://github.com/bailey2k/iot-printer-mailbox.git
 cd iot-printer-mailbox
 ```
 
 ### Start MongoDB (via Docker)
+
 ```bash
 docker run -d --name my-mongo -p 27017:27017 mongo
 ```
 
-### Note: you can use MongoDB Atlas if you so choose.
+Or use MongoDB Atlas for remote hosting.
 
-### Make a config.js file
-```bash
-echo "const SERVER_URL = 'http://localhost:3000';" > config.js
-```
-You can obviously replace this with wherever you'd like to host.
+### Setup Node.js server
 
-### Setup Node.js server (on home server)
 ```bash
 npm install
 node server.js
 ```
 
-### Make a .env file (if using MongoDB Atlas and remote deployment)
+### Environment variables
+
+Create a `.env` file for MongoDB and port (required for Atlas or remote deployment):
+
 ```bash
-MONGODB_URI=mongodburi-ifnecessary
+MONGODB_URI=your-mongodb-uri
 PORT=10000
-<<<<<<< HEAD
-
-# OPTIONAL: if you want to be cheap like me and you only have one Pi/printer setup, this
-# ia a hacky workaround to send emails to yourself when the limit switch is triggered.
-$ note that this is only a temporary solution and you will need to refresh your access tokens
-EMAIL_RECEIVER=name-of-person-getting-emailed
-EMAIL_TO=xxx@email.com
-GMAIL_USER=xxx@email.com
-
-# i chose to use gmail oauth2 over https as Render was blocking SMTP ports, replace these with your respective values
-GMAIL_CLIENT_ID=client_id
-GMAIL_CLIENT_SECRET=client_secret
-GMAIL_REFRESH_TOKEN=refresh_token
-=======
->>>>>>> 5dc2634 (removed temp gmail smtp solutionto begin testing two way mailbox)
 ```
 
-### Make config.py file (on pi, assuming it's setup)
-```bash
-SERVER_URL = "http://<your-server-url>" # 
-USERNAME = "username" # change to whatever name the person on the pi chooses
-POLL_INTERVAL = 10  # seconds between polls, i like to set this to be daily to act like a real mailbox, being delivered daily
+### Pi setup (config.py)
+
+Create `config.py` on the Pi (in the `pi-code` directory):
+
+```python
+SERVER_URL = "http://<your-server-url>"
+USERNAME = "username"  # name of the person receiving mail on this Pi
+POLL_INTERVAL = 10     # seconds between polls
 ```
 
-### Setup mailbox client (on Pi)
-Setup virtual env (recommended)
+### Run mailbox client (on Pi)
+
 ```bash
+cd pi-code
 python3 -m venv venv
 source venv/bin/activate
 pip install requests
-```
-### Run mailbox client (on Pi)
-```bash
 python mailbox.py
 ```
 
-### Physical setup from start to finish after the server is running
+### Physical setup
 
 1. Connect the Pi to USB power.
-2. Connect the printer to power (it may spit out a test page, this is normal unless it happens every time)
+2. Connect the printer to power (it may spit out a test page, this is normal unless it happens every time).
 3. Connect the printer to the Pi via the MiniUSB on the printer, to the MicroUSB adapter, to the Pi.
-<<<<<<< HEAD
-4. Connect the limit switch via the GPIO pins. I used pins 6 and 11 (GND and GPIO17, respectively)
-
-=======
-4. Connect the limit switch via the GPIO pins. I used pins 6 and 11 (GND and GPIO17, respectively)
->>>>>>> 5dc2634 (removed temp gmail smtp solutionto begin testing two way mailbox)
+4. Connect the limit switch via the GPIO pins. I used pins 6 and 11 (GND and GPIO17, respectively).
