@@ -24,10 +24,12 @@ async function connectMongo() {
 }
 connectMongo().catch(console.error);
 
+// show landing page upon website open
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// store a message in mongodb
 app.post('/send', async (req, res) => {
     const { sender, receiver, text } = req.body;
     if (!sender || !receiver || !text) {
@@ -36,11 +38,12 @@ app.post('/send', async (req, res) => {
 
     try {
         const message = {
-            sender,
-            receiver,
+            sender: sender.trim().toLowerCase(),
+            receiver: receiver.trim().toLowerCase(),
             text,
             timestamp: new Date(),
-            delivered: false
+            delivered: false,
+            queued: true
         };
         await messagesCollection.insertOne(message);
         res.json({ status: 'ok' });
@@ -50,10 +53,12 @@ app.post('/send', async (req, res) => {
     }
 });
 
+// retrieve messages sent to the user from mongodb
 app.get('/messages/:user', async (req, res) => {
     try {
+        const user = req.params.user.trim().toLowerCase();
         const userMessages = await messagesCollection
-            .find({ receiver: req.params.user, delivered: false })
+            .find({ receiver: user, delivered: false, $or: [{ queued: false }, { queued: { $exists: false } }] })
             .toArray();
         res.json(userMessages);
     } catch (err) {
@@ -62,6 +67,22 @@ app.get('/messages/:user', async (req, res) => {
     }
 });
 
+// when limit switch is pressed, do this
+app.post('/send_outgoing/:username', async (req, res) => {
+    try {
+        const sender = req.params.username.trim().toLowerCase();
+        const result = await messagesCollection.updateMany(
+            { sender, queued: true },
+            { $set: { queued: false } }
+        );
+        res.json({ sent: result.modifiedCount });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to send outgoing' });
+    }
+});
+
+// mark delivered when printed (i prefer this over deleting from the db so i have nice memories)
 app.post('/delivered/:id', async (req, res) => {
     try {
         const result = await messagesCollection.updateOne(
@@ -75,7 +96,7 @@ app.post('/delivered/:id', async (req, res) => {
     }
 });
 
-// --- Start server ---
+// start listening at designated port
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });

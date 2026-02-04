@@ -1,55 +1,46 @@
 import subprocess
 import time
 import requests
+import RPi.GPIO as GPIO
 from datetime import datetime
-from config import SERVER_URL, USERNAME, POLL_INTERVAL
+import config
 
 PRINTER_NAME = "-"
+SERVER_URL = config.SERVER_URL
+USERNAME = config.USERNAME
+POLL_INTERVAL = config.POLL_INTERVAL
+SWITCH_PIN = getattr(config, 'SWITCH_PIN', 17)
 
-def fetch_messages():
+def on_switch():
     try:
-        resp = requests.get(f"{SERVER_URL}/messages/{USERNAME}", timeout=5)
-        if resp.status_code == 200:
-            return resp.json()
+        requests.post(f"{SERVER_URL}/send_outgoing/{USERNAME}", timeout=5)
     except Exception as e:
-        print("Error fetching messages:", e)
-    return []
-
-def print_message(msg):
-    """Print a message dict and notify server the message was delivered.
-
-    Expects `msg` to be a dict with keys `sender`, `text`, and optionally `_id`.
-    """
-    sender = msg.get('sender', 'unknown')
-    text = msg.get('text', '')
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    content = f"YOU'VE GOT MAIL!\n{timestamp}\nFROM: {sender}\n{text}\n\n\n"
-    try:
-        subprocess.run(["lp", "-d", PRINTER_NAME], input=content.encode(), check=True)
-        msg_id = msg.get("_id")
-        if msg_id:
-            # handle different _id shapes (string or dict from some serializers)
-            if isinstance(msg_id, dict):
-                id_str = msg_id.get('$oid') or msg_id.get('oid') or str(msg_id)
-            else:
-                id_str = str(msg_id)
-            try:
-                requests.post(f"{SERVER_URL}/delivered/{id_str}", timeout=5)
-            except Exception as e:
-                print("Error notifying server about delivery:", e)
-    except Exception as e:
-        print("Print error:", e)
+        print(e)
 
 def main():
-    print(f"Mailbox started for {USERNAME}. Polling {SERVER_URL} every {POLL_INTERVAL} seconds.")
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(SWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.add_event_detect(SWITCH_PIN, GPIO.FALLING, callback=lambda x: on_switch(), bouncetime=300)
+
     while True:
-        messages = fetch_messages()
-        for msg in messages:
-            # msg should be a dict containing sender, text, and _id
-            try:
-                print_message(msg)
-            except Exception as e:
-                print('Error handling message:', e)
+        try:
+            resp = requests.get(f"{SERVER_URL}/messages/{USERNAME}", timeout=5)
+            if resp.status_code == 200:
+                for msg in resp.json():
+                    sender = msg.get('sender', 'unknown')
+                    text = msg.get('text', '')
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    content = f"you've got mail!\n{timestamp}\nfrom: {sender}\n{text}\n\n\n"
+                    try:
+                        subprocess.run(["lp", "-d", PRINTER_NAME], input=content.encode(), check=True)
+                        oid = msg.get("_id")
+                        if oid:
+                            id_str = oid.get("$oid", str(oid)) if isinstance(oid, dict) else str(oid)
+                            requests.post(f"{SERVER_URL}/delivered/{id_str}", timeout=5)
+                    except Exception as e:
+                        print(e)
+        except Exception as e:
+            print(e)
         time.sleep(POLL_INTERVAL)
 
 if __name__ == "__main__":
