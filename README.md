@@ -49,6 +49,7 @@ node server.js
 ```bash
 MONGODB_URI=mongodburi-ifnecessary
 PORT=10000
+<<<<<<< HEAD
 
 # OPTIONAL: if you want to be cheap like me and you only have one Pi/printer setup, this
 # ia a hacky workaround to send emails to yourself when the limit switch is triggered.
@@ -61,6 +62,8 @@ GMAIL_USER=xxx@email.com
 GMAIL_CLIENT_ID=client_id
 GMAIL_CLIENT_SECRET=client_secret
 GMAIL_REFRESH_TOKEN=refresh_token
+=======
+>>>>>>> 5dc2634 (removed temp gmail smtp solutionto begin testing two way mailbox)
 ```
 
 ### Make config.py file (on pi, assuming it's setup)
@@ -87,5 +90,9 @@ python mailbox.py
 1. Connect the Pi to USB power.
 2. Connect the printer to power (it may spit out a test page, this is normal unless it happens every time)
 3. Connect the printer to the Pi via the MiniUSB on the printer, to the MicroUSB adapter, to the Pi.
+<<<<<<< HEAD
 4. Connect the limit switch via the GPIO pins. I used pins 6 and 11 (GND and GPIO17, respectively)
 
+=======
+4. Connect the limit switch via the GPIO pins. I used pins 6 and 11 (GND and GPIO17, respectively)
+>>>>>>> 5dc2634 (removed temp gmail smtp solutionto begin testing two way mailbox)
