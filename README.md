@@ -1,6 +1,6 @@
 # iot-printer-mailbox
 
-An IOT "mailbox" I made as a birthday present for my girlfriend.
+An IOT "mailbox" I made as a present for my girlfriend.
 
 ---
 
@@ -9,9 +9,12 @@ An IOT "mailbox" I made as a birthday present for my girlfriend.
 - messages printed on thermal printer connected to Raspberry Pi
 - simple Node.js/Express backend
 
-## Requirements:
-- Raspberry Pi (I used the Zero 2 W)
+## Requirements (2x of each, if two-way):
+- Raspberry Pi & an appropriate power supply (I used the Zero 2 W and its official power supply)
 - USB thermal printer (TTL thermal printers work, but more finicky setup)
+- A simple limit switch (cheaply found on Amazon, any of these should work)
+- A 5V DC cable and a barrel jack adapter for the printer (adapter can be avoided by soldering directly to the 5V cable)
+- A female to male MicroUSB to USB-A adapter (printer does not like if you use MicroUSB to MiniUSB directly)
 
 ## Installation:
 
@@ -48,7 +51,8 @@ MONGODB_URI=mongodburi-ifnecessary
 PORT=10000
 
 # OPTIONAL: if you want to be cheap like me and you only have one Pi/printer setup, this
-# ia a hacky workaround to send emails to yourself when the limit switch is triggered
+# ia a hacky workaround to send emails to yourself when the limit switch is triggered.
+$ note that this is only a temporary solution and you will need to refresh your access tokens
 EMAIL_RECEIVER=name-of-person-getting-emailed
 EMAIL_TO=xxx@email.com
 GMAIL_USER=xxx@email.com
@@ -59,7 +63,7 @@ GMAIL_CLIENT_SECRET=client_secret
 GMAIL_REFRESH_TOKEN=refresh_token
 ```
 
-### Make config.py file (on pi)
+### Make config.py file (on pi, assuming it's setup)
 ```bash
 SERVER_URL = "http://<your-server-url>" # 
 USERNAME = "username" # change to whatever name the person on the pi chooses
@@ -77,4 +81,11 @@ pip install requests
 ```bash
 python mailbox.py
 ```
+
+### Physical setup from start to finish after the server is running
+
+1. Connect the Pi to USB power.
+2. Connect the printer to power (it may spit out a test page, this is normal unless it happens every time)
+3. Connect the printer to the Pi via the MiniUSB on the printer, to the MicroUSB adapter, to the Pi.
+4. Connect the limit switch via the GPIO pins. I used pins 6 and 11 (GND and GPIO17, respectively)
 
