@@ -47,6 +47,8 @@ node server.js
 MONGODB_URI=mongodburi-ifnecessary
 PORT=10000
 
+# OPTIONAL: if you want to be cheap like me and you only have one Pi/printer setup, this
+# ia a hacky workaround to send emails to yourself when the limit switch is triggered
 EMAIL_RECEIVER=name-of-person-getting-emailed
 EMAIL_TO=xxx@email.com
 GMAIL_USER=xxx@email.com
