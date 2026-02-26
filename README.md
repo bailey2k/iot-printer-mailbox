@@ -2,6 +2,8 @@
 
 An IOT "mailbox" I made as a present for my girlfriend. 
 
+I wrote a blog post [here](https://bailey2k.dev/blog/iot-mailbox)
+
 ---
 
 ## Features
